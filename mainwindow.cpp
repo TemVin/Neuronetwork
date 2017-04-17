@@ -10,6 +10,7 @@
 
 std::vector<double> X0, A, G;
 double ***W;
+double **X;
 int num_neur;   // число нейронов
 int num_layers; // число слоев
 int time_n;     // время процесса
@@ -18,6 +19,7 @@ int M1;         // штрафные коэффициенты
 int M2;         // штрафные коэффициенты
 int step;       // шаг градиен. спуска
 int accuracy;   // точность
+double dt;      // dt = T/q
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -31,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent) :
     label-> setPixmap( myPixmap );
     l_tab1->addWidget(label);
     ui->tab->setLayout(l_tab1);
+
+    set_defaults();
 }
 
 
@@ -55,6 +59,12 @@ void MainWindow::on_lineEdit_textChanged(const QString &arg1)
 
 void MainWindow::on_pushButton_clicked()
 {
+    init();
+    dt = time_n / num_layers;
+}
+
+void MainWindow::init()
+{
     for (int i = 0; i < num_neur;i++)
     {
         X0.push_back(ui->tableWidget->item(i, 0)->text().toDouble());
@@ -71,15 +81,28 @@ void MainWindow::on_pushButton_clicked()
     for(int k = 0; k < num_layers; k++)
         for(int i = 0; i < num_neur; i++)
             for(int j = 0; j < num_neur; j++)
-                W[k][i][j] = ui->tableWidget->item(i, j)->text().toDouble();
+                W[k][i][j] = ui->tableWidget_2->item(i, j)->text().toDouble();
     time_n = ui->lineEdit_7->text().toInt();
     limit = ui->lineEdit_2->text().toInt();
     M1 = ui->lineEdit_5->text().toInt();
     M2 = ui->lineEdit_6->text().toInt();
     step = ui->lineEdit_4->text().toInt();
     accuracy = ui->lineEdit_8->text().toInt();
+
 }
 
+void MainWindow:: set_defaults()
+{
+    ui->lineEdit->setText("3");
+    ui->lineEdit_7->setText("10");
+    ui->lineEdit_3->setText("300");
+    ui->lineEdit_2->setText("1");
+    ui->lineEdit_8->setText("0.01");
+    ui->lineEdit_4->setText("0.1");//?
+    ui->lineEdit_5->setText("1");
+    ui->lineEdit_6->setText("1");
+
+}
 
 
 
