@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QPalette>
+#include <QMessageBox>
 #include <vector>
 
 
@@ -20,6 +21,10 @@ double M2;         // штрафные коэффициенты
 int step;       // шаг градиен. спуска
 int accuracy;   // точность
 double dt;      // dt = T/q
+
+void calc_X();
+double calc_I();
+double** calc_p();
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -61,11 +66,14 @@ void MainWindow::on_pushButtonStart_clicked()
 {
     init();
     dt = time_n / num_layers;
+    calc_X();
+    auto I = calc_I();
+    QMessageBox::information(this, QString("temporary view"), QString("I = %1").arg(I));
 }
 
 void MainWindow::init()
 {
-    for (int i = 0; i < num_neur;i++)
+    for (int i = 0; i < num_neur; i++)
     {
         X0.push_back(ui->tableWidgetInitValues->item(i, 0)->text().toDouble());
         A.push_back(ui->tableWidgetInitValues->item(i, 1)->text().toDouble());
@@ -88,7 +96,6 @@ void MainWindow::init()
     M2 = ui->lineEditM2->text().toDouble();
     step = ui->lineEditStep->text().toInt();
     accuracy = ui->lineEditAccur->text().toInt();
-
 }
 
 void MainWindow::set_defaults()
@@ -101,7 +108,6 @@ void MainWindow::set_defaults()
     ui->lineEditStep->setText("0.1");//?
     ui->lineEditM1->setText("1.0");
     ui->lineEditM2->setText("1.0");
-
 }
 
 void calc_X()
@@ -111,7 +117,7 @@ void calc_X()
         X[i] = new double[num_neur];
     for(int i = 0; i < num_neur; i++)
         X[0][i] = X0[i];
-    for(int k = 0; k < num_layers; k++)
+    for(int k = 0; k < num_layers - 1; k++)
         for(int i = 0; i < num_neur; i++)
         {
             double sum = 0.0;
@@ -121,9 +127,35 @@ void calc_X()
         }
 }
 
+double calc_I()
+{
+    double sum1 = 0.0;
+    double sum2 = 0.0;
+    for(int k = 0; k < num_layers; k++)
+        for(int i = 0; i < num_neur; i++)
+            for(int j = 0; j < num_neur; j++)
+                sum1 += pow(W[k][i][j], 2);
+    for(int i = 0; i < num_neur; i++)
+        sum2 += pow(X[num_layers - 1][i] - A[i], 2);
+    return dt * M1 * sum1 + M2 * sum2;
+}
 
-
-
+double** calc_p()
+{
+    double **p = new double*[num_layers];
+    for(int i = 0; i < num_layers; i++)
+        p[i] = new double[num_neur];
+    for(int i = 0; i < num_neur; i++)
+        p[num_layers - 1][i] = -2 * M2 * (X[num_layers - 1][i] - A[i]);
+    for(int i = 0; i < num_neur; i++)
+        for(int k = num_layers - 2; k > 0; k--)
+        {
+            double sum = 0.0;
+            for(int j = 0; j < num_neur; j++)//indeces begin with 0 or 1??????
+                sum += W[k][i][j] * p[k + 1][j];
+            p[k][i] = p[k + 1][i] - dt * G[i] * p[k + 1][i] + dt * sum;
+        }
+}
 
 
 
