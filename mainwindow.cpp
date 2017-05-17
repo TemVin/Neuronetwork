@@ -108,19 +108,20 @@ void MainWindow::on_pushButtonStart_clicked()
 
     calc(X0, A, G, W, X, I);
     QMessageBox::information(this, QString("temporary view"), QString("iterations done: %1").arg(iteration));
-    print(X, W);/*
+    print(X, W);
     plot(X);
 
-    destroy(W, X);
+    destroy(X, W);
     delete []X0;
     delete []A;
-    delete []G;*/
+    delete []G;
 }
 
 void MainWindow::calc(double *X0, double *A, double *G, double ***W, double **X, double I)
 {
     double ***W_, **X_, I_, dI, **p;
     iteration = 0;
+    ui->textBrowserLog->append((QString("init I = %1").arg(I)));
 
     do
     {
@@ -141,10 +142,9 @@ void MainWindow::calc(double *X0, double *A, double *G, double ***W, double **X,
 
         if(fabs(dI) > accuracy)
         {
-            destroy(W, X);
-            W = std::move(W_);
-            X = std::move(X_);
+            copy(X, X_, W, W_);
             I = I_;
+            destroy(X_, W_);
             iteration++;
         }
     } while(fabs(dI) > accuracy);
@@ -161,18 +161,31 @@ double*** MainWindow::create_W()
     return W;
 }
 
-void MainWindow::destroy(double ***W, double **X)
+void MainWindow::copy(double **X, double **X_, double ***W, double ***W_)
 {
+    for(int i = 0; i < num_layers + 1; i++)
+        for(int j = 0; j < num_neur; j++)
+            X[i][j] = X_[i][j];
+
+
+    for(int i = 0; i < num_layers; i++)
+        for(int j = 0; j < num_neur; j++)
+            for(int k = 0; k < num_neur; k++)
+                W[i][j][k] = W_[i][j][k];
+}
+
+void MainWindow::destroy(double **X, double ***W)
+{    
+    for (int i = 0; i < num_layers + 1; i++)
+        delete []X[i];
+    delete []X;
+
     for (int i = 0; i < num_layers; i++)
         for(int j = 0; j < num_neur; j++)
             delete []W[i][j];
     for (int i = 0; i < num_layers + 1; i++)
         delete []W[i];
     delete []W;
-
-    for (int i = 0; i < num_layers + 1; i++)
-        delete []X[i];
-    delete []X;
 }
 
 double** MainWindow::calc_X(double *X0, double *G, double ***W)
@@ -257,7 +270,7 @@ void MainWindow::print(double **X, double ***W)
             }
             item->setText(QString("%1").arg(X[i][j]));
         }
-/*
+
     for(int k = 0; k < num_layers; k++)
     {
         auto layer = new QTableWidget(this);//take existing?
@@ -275,7 +288,7 @@ void MainWindow::print(double **X, double ***W)
                 }
                 item->setText(QString("%1").arg(W[k][i][j]));
             }
-    }*/
+    }
 }
 
 void MainWindow::plot(double **X)
@@ -295,7 +308,7 @@ void MainWindow::plot(double **X)
     ui->customPlot->xAxis->setLabel("X");
     ui->customPlot->xAxis->setRange(0.0, num_layers);
     ui->customPlot->yAxis->setLabel("Y");
-    ui->customPlot->yAxis->setRange(-10.0, 10.0);
+    ui->customPlot->yAxis->setRange(-5.0, 5.0);
     ui->customPlot->setInteraction(QCP::iRangeDrag, true);
     ui->customPlot->setInteraction(QCP::iRangeZoom, true);
     ui->customPlot->replot();

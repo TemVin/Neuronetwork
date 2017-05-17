@@ -27,7 +27,8 @@ private:
     void plot(double **X);
 
     double*** create_W();
-    void destroy(double ***W, double **X);
+    void copy(double **X, double **X_, double ***W, double ***W_);
+    void destroy(double **X, double ***W);
     double** calc_X(double *X0, double *G, double ***W);
     double calc_I(double *A, double **X, double ***W);
     double** calc_p(double *A, double *G, double **X, double ***W);

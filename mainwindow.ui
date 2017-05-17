@@ -226,16 +226,11 @@
        <attribute name="title">
         <string>Страница</string>
        </attribute>
-       <widget class="QTextBrowser" name="textBrowserLog">
-        <property name="geometry">
-         <rect>
-          <x>120</x>
-          <y>50</y>
-          <width>256</width>
-          <height>192</height>
-         </rect>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <widget class="QTextBrowser" name="textBrowserLog"/>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
